@@ -61,7 +61,7 @@ stock-price-prediction-dashboard/
 ![dashboard](https://github.com/richardgliane/stock-prediction/blob/main/images/initial_dashboard.png "Sample Dashboard")
 
 ## Latest Dashboard
-Example of the dashboard showing historical prices, predictions, statically plotted training loss, and company info for TSLA
+Example of the dashboard showing historical prices, predictions, statically plotted training loss, and company info.
 ![dashboard](https://github.com/richardgliane/stock-prediction/blob/main/images/latest_1.png)
 ![dashboard](https://github.com/richardgliane/stock-prediction/blob/main/images/latest_2.png)
 

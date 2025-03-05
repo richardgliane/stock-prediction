@@ -1,10 +1,10 @@
-
 import torch
 import torch.nn as nn
 import numpy as np
 from data import fetch_stock_data, scale_data, create_sequences
 
-#torch.classes.__path__ = [] # add this line to manually set it to empty. 
+# Fix for Streamlit-PyTorch compatibility
+torch.classes.__path__ = []  # Added by user to resolve RuntimeError
 
 class LSTMModel(nn.Module):
     def __init__(self, input_size=1, hidden_size=50, num_layers=2):
@@ -20,11 +20,12 @@ class LSTMModel(nn.Module):
         out, _ = self.lstm(x, (h0, c0))
         out = self.fc(out[:, -1, :])
         return out
-        
-# Train model
+
 def train_model(ticker, seq_length=60, epochs=20):
     # Fetch and preprocess data
     df = fetch_stock_data(ticker)
+    if df.empty:
+        raise ValueError(f"Invalid ticker: {ticker}. No data available.")
     scaled_data, scaler = scale_data(df)
     X, y = create_sequences(scaled_data, seq_length)
 
@@ -42,6 +43,9 @@ def train_model(ticker, seq_length=60, epochs=20):
     criterion = nn.MSELoss()
     optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
 
+    # Track loss history
+    loss_history = []
+
     # Training loop
     for epoch in range(epochs):
         model.train()
@@ -50,13 +54,13 @@ def train_model(ticker, seq_length=60, epochs=20):
         loss = criterion(output, y_train.unsqueeze(1))
         loss.backward()
         optimizer.step()
+        loss_history.append(loss.item())
         print(f"Epoch {epoch+1}/{epochs}, Loss: {loss.item():.4f}")
 
     # Save the model
     torch.save(model.state_dict(), f"{ticker}_lstm.pth")
-    return model, scaler        
+    return model, scaler, loss_history
 
-# Model predictor    
 def predict_future(model, scaler, last_sequence, days=5):
     model.eval()
     future_preds = []
@@ -70,4 +74,4 @@ def predict_future(model, scaler, last_sequence, days=5):
             current_seq = np.roll(current_seq, -1)
             current_seq[-1] = pred
 
-    return scaler.inverse_transform(np.array(future_preds).reshape(-1, 1))    
+    return scaler.inverse_transform(np.array(future_preds).reshape(-1, 1))

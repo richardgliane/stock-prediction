@@ -1,0 +1,3 @@
+*.pth
+/stockpred_env
+/__pycache__

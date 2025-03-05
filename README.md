@@ -123,12 +123,12 @@ Given the current codebase and constraints (simplicity, existing dependencies), 
 - Keep the implementation manageable by avoiding complex transformers or external data for now, which can be added later.
 
 ## Dashboard with multiple models (LTSM, GRU)
-Improved performanced can be seen below with the GRU model
+GRU model predictions
 ![dashboard](https://github.com/richardgliane/stock-prediction/blob/main/images/tsla_gru_1.png)
 ![dashboard](https://github.com/richardgliane/stock-prediction/blob/main/images/tsla_gru_2.png)
 
-## Dashboard with multiple models (LTSM, GRU)
-Improved performanced can be seen below with the GRU model
+## Dashboard with multiple models (LTSM, GRU, AttentionGRU)
+AttentionGRU model predictions
 ![dashboard](https://github.com/richardgliane/stock-prediction/blob/main/images/lat1.png)
 ![dashboard](https://github.com/richardgliane/stock-prediction/blob/main/images/lat2.png)
 ![dashboard](https://github.com/richardgliane/stock-prediction/blob/main/images/lat3.png)

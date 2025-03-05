@@ -1,0 +1,2 @@
+# stock-prediction
+ This project is an interactive web-based dashboard that predicts future stock prices using historical data and an LSTM (Long Short-Term Memory) neural network. Users can input a stock ticker (e.g., "AAPL" for Apple), visualize historical price trends, and see predictions for the next few days. Built with Python, it leverages modern data science and machine learning tools to demonstrate skills in time-series analysis, visualization, and deployment.

@@ -3,6 +3,8 @@
 ## Overview
 This project is an interactive web-based dashboard that predicts future stock prices using historical data and an LSTM (Long Short-Term Memory) neural network. Users can input a stock ticker (e.g., "AAPL" for Apple), visualize historical price trends, training loss, and see predictions for the next few days, along with dynamically fetched company information and logos. Built with Python, it leverages modern data science and machine learning tools to demonstrate skills in time-series analysis, visualization, and deployment.
 
+![dashboard](https://github.com/richardgliane/stock-prediction/blob/main/images/hyperparams.png)
+
 ## Features
 - Fetch real-time stock data from Yahoo Finance.
 - Predict future stock prices using an LSTM model.
@@ -67,7 +69,7 @@ Example of the dashboard showing historical prices, predictions, statically plot
 
 
 ## Findings
-The price predictions don’t emulate real-world price movements effectively. This is a common challenge in stock price prediction, as financial markets are influenced by complex, non-linear factors including macroeconomic indicators, sentiment, volume, and unexpected events, which simple LSTM models may not capture well. The current LSTM model, while a solid starting point for time-series forecasting, has limitations such as:
+The price predictions do not seem to emulate real-world price movements effectively. This is a common challenge in stock price prediction, as financial markets are influenced by complex, non-linear factors including macroeconomic indicators, sentiment, volume, and unexpected events, which simple LSTM models may not capture well. The current LSTM model, while a solid starting point for time-series forecasting, has limitations such as:
 
 **Over-simplification**: It relies solely on historical closing prices, ignoring other features like volume, open/high/low prices, or external data.
 
@@ -124,3 +126,9 @@ Given the current codebase and constraints (simplicity, existing dependencies), 
 Improved performanced can be seen below with the GRU model
 ![dashboard](https://github.com/richardgliane/stock-prediction/blob/main/images/tsla_gru_1.png)
 ![dashboard](https://github.com/richardgliane/stock-prediction/blob/main/images/tsla_gru_2.png)
+
+## Dashboard with multiple models (LTSM, GRU)
+Improved performanced can be seen below with the GRU model
+![dashboard](https://github.com/richardgliane/stock-prediction/blob/main/images/lat1.png)
+![dashboard](https://github.com/richardgliane/stock-prediction/blob/main/images/lat2.png)
+![dashboard](https://github.com/richardgliane/stock-prediction/blob/main/images/lat3.png)

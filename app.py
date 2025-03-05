@@ -1,8 +1,8 @@
 import os
 import streamlit as st
 import plotly.graph_objs as go
-from data import fetch_stock_data, preprocess_data, scale_data, create_sequences
-from model import LSTMModel, train_model, predict_future
+from data import fetch_stock_data, scale_data, create_sequences
+from model import LSTMModel, GRUModel, train_model, predict_future
 import torch
 import pandas as pd
 import yfinance as yf
@@ -55,6 +55,9 @@ def update_ticker():
     st.session_state.ticker = st.session_state.ticker_input.upper()
 
 ticker = st.text_input("Enter Stock Ticker", value=st.session_state.ticker, key="ticker_input", on_change=update_ticker)
+
+# Model selection
+model_type = st.radio("Select Model", ["LSTM", "GRU"], index=0)
 
 # Set days_to_predict slider (default to 5)
 days_to_predict = st.slider("Days to Predict", 1, 30, 5, key="days_slider")
@@ -112,45 +115,45 @@ if ticker:
             # Train or load model based on checkbox
             model = None
             if retrain_model:
-                st.write("Training new model...")
+                st.write(f"Training new {model_type} model...")
                 with st.spinner("Training in progress..."):
-                    model, scaler, loss_history = train_model(ticker)
+                    model, scaler, loss_history = train_model(ticker, model_type=model_type)
                 # Plot training loss statically
                 fig_loss = go.Figure()
                 fig_loss.add_trace(go.Scatter(x=list(range(1, len(loss_history) + 1)), y=loss_history, mode='lines+markers', name="Training Loss"))
-                fig_loss.update_layout(title="Training Loss Over Epochs", xaxis_title="Epoch", yaxis_title="Loss")
+                fig_loss.update_layout(title=f"{model_type} Training Loss Over Epochs", xaxis_title="Epoch", yaxis_title="Loss")
                 st.markdown('<div class="chart-container">', unsafe_allow_html=True)
                 st.plotly_chart(fig_loss)
                 st.markdown('</div>', unsafe_allow_html=True)
             else:
                 try:
-                    model = LSTMModel()
-                    model.load_state_dict(torch.load(f"{ticker}_lstm.pth"))
-                    st.write("Using cached model...")
+                    model = LSTMModel() if model_type == "LSTM" else GRUModel()
+                    model.load_state_dict(torch.load(f"{ticker}_{model_type.lower()}.pth"))
+                    st.write(f"Using cached {model_type} model...")
                 except FileNotFoundError:
-                    st.write("No cached model found. Training new model...")
+                    st.write(f"No cached {model_type} model found. Training new model...")
                     with st.spinner("Training in progress..."):
-                        model, scaler, loss_history = train_model(ticker)
+                        model, scaler, loss_history = train_model(ticker, model_type=model_type)
                     # Plot training loss statically
                     fig_loss = go.Figure()
                     fig_loss.add_trace(go.Scatter(x=list(range(1, len(loss_history) + 1)), y=loss_history, mode='lines+markers', name="Training Loss"))
-                    fig_loss.update_layout(title="Training Loss Over Epochs", xaxis_title="Epoch", yaxis_title="Loss")
+                    fig_loss.update_layout(title=f"{model_type} Training Loss Over Epochs", xaxis_title="Epoch", yaxis_title="Loss")
                     st.markdown('<div class="chart-container">', unsafe_allow_html=True)
                     st.plotly_chart(fig_loss)
                     st.markdown('</div>', unsafe_allow_html=True)
 
             # Predict and plot predictions after training is complete
             if model:
-                scaled_data, scaler = scale_data(df)
-                last_sequence = scaled_data[-60:, 0]
+                scaled_data, scaler = scale_data(df[['Open', 'High', 'Low', 'Close', 'Volume']].values)
+                last_sequence = scaled_data[-60:, :].reshape(1, -1, 5)  # Ensure 3D shape (1, 60, 5)
                 preds = predict_future(model, scaler, last_sequence, days_to_predict)
 
                 prediction_container = st.container()
                 with prediction_container:
                     fig_prediction = go.Figure()
                     fig_prediction.add_trace(go.Scatter(x=df.index, y=df['Close'], name="Close Price"))
-                    fig_prediction.add_trace(go.Scatter(x=pd.date_range(start=df.index[-1], periods=days_to_predict + 1, freq='B')[1:], y=preds.flatten(), name="Predictions", line=dict(color='red')))
-                    fig_prediction.update_layout(title=f"{ticker} Historical Prices with Predictions", xaxis_title="Date", yaxis_title="Price")
+                    fig_prediction.add_trace(go.Scatter(x=pd.date_range(start=df.index[-1], periods=days_to_predict + 1, freq='B')[1:], y=preds, name="Predictions", line=dict(color='red')))
+                    fig_prediction.update_layout(title=f"{ticker} Historical Prices with {model_type} Predictions", xaxis_title="Date", yaxis_title="Price")
                     st.markdown('<div class="chart-container">', unsafe_allow_html=True)
                     st.plotly_chart(fig_prediction, use_container_width=True)
                     st.markdown('</div>', unsafe_allow_html=True)

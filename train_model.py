@@ -4,7 +4,8 @@ import numpy as np
 from data import fetch_stock_data, scale_data, create_sequences
 
 # Fix for Streamlit-PyTorch compatibility
-torch.classes.__path__ = []  # Added by user to resolve RuntimeError
+# Added to resolve RuntimeError; Look into this further later
+torch.classes.__path__ = []  
 
 class LSTMModel(nn.Module):
     def __init__(self, input_size=5, hidden_size=50, num_layers=2):  # Input size for 5 features
@@ -96,15 +97,14 @@ def train_model(ticker, model_type="LSTM", seq_length=60, epochs=20):
 def predict_future(model, scaler, last_sequence, days=5):
     model.eval()
     future_preds = []
-    # Reshape last_sequence to (1, seq_length, features) to match 3D expectation
-    current_seq = last_sequence.reshape(1, -1, 5)  # Shape: (1, 60, 5)
+    current_seq = last_sequence.copy()
 
     for _ in range(days):
         with torch.no_grad():
-            seq_tensor = torch.FloatTensor(current_seq)
+            seq_tensor = torch.FloatTensor(current_seq).reshape(1, -1, 5)  # 5 features
             pred = model(seq_tensor).item()
             future_preds.append(pred)
-            # Update the last value (Close, index 3) in the 3D array
+            # Update the last value (simplified to Close for prediction, index 3)
             current_seq = np.roll(current_seq, -1, axis=1)
             current_seq[0, -1, 3] = pred  # Update Close price
 
@@ -116,15 +116,9 @@ def predict_future(model, scaler, last_sequence, days=5):
 def create_sequences(data, seq_length=60, multi_feature=False):
     X, y = [], []
     for i in range(seq_length, len(data)):
-        # Ensure data is 2D and has at least 5 columns
-        if data.shape[1] < 5:
-            raise ValueError("Data must have at least 5 features (Open, High, Low, Close, Volume)")
-        X.append(data[i-seq_length:i, :])  # All 5 features
+        X.append(data[i-seq_length:i, :])  # All features
         y.append(data[i, 3])  # Target is Close price (index 3)
-    X = np.array(X)
-    y = np.array(y)
-    print(f"Created X shape: {X.shape}, y shape: {y.shape}")  # Debug print
-    return X, y
+    return np.array(X), np.array(y)
 
 if __name__ == "__main__":
     # Test with a specific ticker

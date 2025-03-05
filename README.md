@@ -105,7 +105,7 @@ To improve prediction accuracy and better emulate real-world price movements, we
 
 **Ensemble Methods**:
 * Combine predictions from LSTM, GRU, and a statistical model (e.g., ARIMA) to leverage diverse strengths.
-*Reduces overfitting and improves robustness.
+* Reduces overfitting and improves robustness.
 
 **External Data Integration**:
 * Include sentiment analysis from news or social media (e.g., Twitter), macroeconomic indicators (e.g., interest rates), or event data.

@@ -20,3 +20,8 @@ This project is an interactive web-based dashboard that predicts future stock pr
    ```bash
    git clone https://github.com/your-username/stock-price-prediction-dashboard.git
    cd stock-price-prediction-dashboard
+   ```
+   
+## Sample Dashboard
+
+![Alt text](images/dashboard_screenshot.png)

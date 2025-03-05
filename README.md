@@ -24,4 +24,4 @@ This project is an interactive web-based dashboard that predicts future stock pr
    
 ## Sample Dashboard
 
-![Alt text](images/dashboard_screenshot.png)
+![dashboard](https://github.com/richardgliane/stock-prediction/blob/main/images/initial_dashboard.png "Sample Dashboard")

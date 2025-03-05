@@ -54,8 +54,9 @@ def train_model(ticker, seq_length=60, epochs=20):
         loss = criterion(output, y_train.unsqueeze(1))
         loss.backward()
         optimizer.step()
-        loss_history.append(loss.item())
-        print(f"Epoch {epoch+1}/{epochs}, Loss: {loss.item():.4f}")
+        loss_value = loss.item()
+        loss_history.append(loss_value)
+        print(f"Epoch {epoch+1}/{epochs}, Loss: {loss_value:.4f}")
 
     # Save the model
     torch.save(model.state_dict(), f"{ticker}_lstm.pth")

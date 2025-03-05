@@ -61,6 +61,61 @@ stock-price-prediction-dashboard/
 ![dashboard](https://github.com/richardgliane/stock-prediction/blob/main/images/initial_dashboard.png "Sample Dashboard")
 
 ## Latest Dashboard
-
+Example of the dashboard showing historical prices, predictions, statically plotted training loss, and company info for TSLA
 ![dashboard](https://github.com/richardgliane/stock-prediction/blob/main/images/latest_1.png)
 ![dashboard](https://github.com/richardgliane/stock-prediction/blob/main/images/latest_2.png)
+
+
+## Findings
+The price predictions don’t emulate real-world price movements effectively. This is a common challenge in stock price prediction, as financial markets are influenced by complex, non-linear factors including macroeconomic indicators, sentiment, volume, and unexpected events, which simple LSTM models may not capture well. The current LSTM model, while a solid starting point for time-series forecasting, has limitations such as:
+**Over-simplification**: It relies solely on historical closing prices, ignoring other features like volume, open/high/low prices, or external data.
+
+**Stationarity Assumption**: LSTMs assume the time series is somewhat stationary, but stock prices are often non-stationary with trends and volatility clusters.
+
+**Short Memory**: The 60-day sequence length might not capture long-term dependencies or seasonal patterns.
+
+**Lack of Context**: It doesn’t account for market sentiment, news, or technical indicators (e.g., RSI, MACD).
+
+To improve prediction accuracy and better emulate real-world price movements, we can explore better models and techniques. Below, I’ll propose enhancements and an additional model option, then update the code to implement one of these as a selectable alternative.
+
+## Analysis and Proposed Improvements
+### Limitations of the Current LSTM
+- The model predicts a linear continuation based on past trends, which doesn’t reflect the volatility or sudden shifts in stock prices.
+- The training data (80% train/20% test split on scaled closing prices) might overfit to noise rather than meaningful patterns.
+- The loss function (MSE) penalizes all errors equally, which might not align with the need to capture directional changes.
+
+### Better Models and Techniques
+
+**Enhanced LSTM with Additional Features**:
+*Incorporate features like volume, open/high/low prices, moving averages, and technical indicators (e.g., RSI, Bollinger Bands).
+*Use a multi-input LSTM to process these features, potentially improving pattern recognition.
+
+**GRU (Gated Recurrent Unit)**:
+*A simpler alternative to LSTM with fewer parameters, which can be faster to train and still capture sequential dependencies.
+*Might perform better with noisy data like stock prices.
+
+**Transformer-Based Models (e.g., Time Series Transformer)**:
+*Transformers excel at capturing long-range dependencies and can handle multivariate time series.
+*Requires more data and computational resources but offers state-of-the-art performance for time-series forecasting.
+
+**Hybrid Models (LSTM + Attention)**:
+*Add an attention mechanism to the LSTM to focus on important time steps, improving the model’s ability to weigh recent vs. distant data.
+*This can better emulate sudden price movements driven by specific events.
+
+**Ensemble Methods**:
+*Combine predictions from LSTM, GRU, and a statistical model (e.g., ARIMA) to leverage diverse strengths.
+*Reduces overfitting and improves robustness.
+
+**External Data Integration**:
+*Include sentiment analysis from news or social media (e.g., Twitter), macroeconomic indicators (e.g., interest rates), or event data.
+*Use a model like BERT for sentiment, combined with LSTM for price data.
+
+**Volatility Modeling**:
+Add a GARCH (Generalized Autoregressive Conditional Heteroskedasticity) model or a stochastic volatility model to capture price volatility, which is critical for realistic predictions.
+
+### Recommended Approach
+Given the current codebase and constraints (simplicity, existing dependencies), let’s:
+- Enhance the existing LSTM with additional features (open, high, low, volume) to improve input diversity.
+- Add a GRU model as an alternative option, selectable via a radio button, to compare performance.
+- Keep the implementation manageable by avoiding complex transformers or external data for now, which can be added later.
+

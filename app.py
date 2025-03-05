@@ -46,8 +46,15 @@ os.environ["STREAMLIT_FILE_WATCHER_TYPE"] = "none"
 
 st.markdown('<h1 class="title">Stock Price Prediction Dashboard</h1>', unsafe_allow_html=True)
 
-# User input with Enter key trigger (capitalized)
-ticker = st.text_input("Enter Stock Ticker (e.g., AAPL)", "AAPL", key="ticker_input").upper()
+# Initialize session state for ticker if not present
+if 'ticker' not in st.session_state:
+    st.session_state.ticker = "AAPL"
+
+# User input with real-time capitalization
+def update_ticker():
+    st.session_state.ticker = st.session_state.ticker_input.upper()
+
+ticker = st.text_input("Enter Stock Ticker", value=st.session_state.ticker, key="ticker_input", on_change=update_ticker)
 
 # Set days_to_predict slider (default to 5)
 days_to_predict = st.slider("Days to Predict", 1, 30, 5, key="days_slider")
@@ -73,19 +80,12 @@ if ticker:
             # Dynamically fetch logo from Wikipedia (currently non-functional, debug included)
             logo_url = None
             try:
-                # Clean company name for Wikipedia URL
                 wiki_name = company_name.replace(' ', '_').replace('&', '%26').replace('.', '')
                 response = requests.get(f"https://en.wikipedia.org/wiki/{wiki_name}", timeout=5)
                 soup = BeautifulSoup(response.text, 'html.parser')
-                # Look for logo in infobox or first image
                 logo_img = soup.find('img', attrs={'src': lambda x: x and ('logo' in x.lower() or 'svg' in x.lower())})
-                if not logo_url:
-                    logo_img = soup.find('a', class_='image').find('img') if soup.find('a', class_='image') else None
-                    if logo_img and 'src' in logo_img.attrs:
-                        src = logo_img['src']
-                        logo_url = f"https:{src}" if src.startswith('//') else src
-                        if not logo_url.lower().endswith(('.png', '.jpg', '.jpeg', '.svg')):
-                            logo_url = None
+                if not logo_img:
+                    logo_img = soup.find('table', class_='infobox').find('img') if soup.find('table', class_='infobox') else None
                 if logo_img and 'src' in logo_img.attrs:
                     src = logo_img['src']
                     logo_url = f"https:{src}" if src.startswith('//') else src
@@ -102,18 +102,20 @@ if ticker:
             st.write("Historical Data", df.tail())
 
             # Plot historical data
-            fig = go.Figure()
-            fig.add_trace(go.Scatter(x=df.index, y=df['Close'], name="Close Price"))
-            fig.update_layout(title=f"{ticker} Historical Prices", xaxis_title="Date", yaxis_title="Price")
+            fig_historical = go.Figure()
+            fig_historical.add_trace(go.Scatter(x=df.index, y=df['Close'], name="Close Price"))
+            fig_historical.update_layout(title=f"{ticker} Historical Prices", xaxis_title="Date", yaxis_title="Price")
             st.markdown('<div class="chart-container">', unsafe_allow_html=True)
-            st.plotly_chart(fig)
+            st.plotly_chart(fig_historical)
             st.markdown('</div>', unsafe_allow_html=True)
 
             # Train or load model based on checkbox
+            model = None
             if retrain_model:
                 st.write("Training new model...")
-                model, scaler, loss_history = train_model(ticker)
-                # Plot training loss
+                with st.spinner("Training in progress..."):
+                    model, scaler, loss_history = train_model(ticker)
+                # Plot training loss statically
                 fig_loss = go.Figure()
                 fig_loss.add_trace(go.Scatter(x=list(range(1, len(loss_history) + 1)), y=loss_history, mode='lines+markers', name="Training Loss"))
                 fig_loss.update_layout(title="Training Loss Over Epochs", xaxis_title="Epoch", yaxis_title="Loss")
@@ -127,8 +129,9 @@ if ticker:
                     st.write("Using cached model...")
                 except FileNotFoundError:
                     st.write("No cached model found. Training new model...")
-                    model, scaler, loss_history = train_model(ticker)
-                    # Plot training loss
+                    with st.spinner("Training in progress..."):
+                        model, scaler, loss_history = train_model(ticker)
+                    # Plot training loss statically
                     fig_loss = go.Figure()
                     fig_loss.add_trace(go.Scatter(x=list(range(1, len(loss_history) + 1)), y=loss_history, mode='lines+markers', name="Training Loss"))
                     fig_loss.update_layout(title="Training Loss Over Epochs", xaxis_title="Epoch", yaxis_title="Loss")
@@ -136,17 +139,21 @@ if ticker:
                     st.plotly_chart(fig_loss)
                     st.markdown('</div>', unsafe_allow_html=True)
 
-            # Predict
-            scaled_data, scaler = scale_data(df)
-            last_sequence = scaled_data[-60:, 0]
-            preds = predict_future(model, scaler, last_sequence, days_to_predict)
+            # Predict and plot predictions after training is complete
+            if model:
+                scaled_data, scaler = scale_data(df)
+                last_sequence = scaled_data[-60:, 0]
+                preds = predict_future(model, scaler, last_sequence, days_to_predict)
 
-            # Plot predictions
-            future_dates = pd.date_range(start=df.index[-1], periods=days_to_predict + 1, freq='B')[1:]
-            fig.add_trace(go.Scatter(x=future_dates, y=preds.flatten(), name="Predictions", line=dict(color='red')))
-            st.markdown('<div class="chart-container">', unsafe_allow_html=True)
-            st.plotly_chart(fig)
-            st.markdown('</div>', unsafe_allow_html=True)
+                prediction_container = st.container()
+                with prediction_container:
+                    fig_prediction = go.Figure()
+                    fig_prediction.add_trace(go.Scatter(x=df.index, y=df['Close'], name="Close Price"))
+                    fig_prediction.add_trace(go.Scatter(x=pd.date_range(start=df.index[-1], periods=days_to_predict + 1, freq='B')[1:], y=preds.flatten(), name="Predictions", line=dict(color='red')))
+                    fig_prediction.update_layout(title=f"{ticker} Historical Prices with Predictions", xaxis_title="Date", yaxis_title="Price")
+                    st.markdown('<div class="chart-container">', unsafe_allow_html=True)
+                    st.plotly_chart(fig_prediction, use_container_width=True)
+                    st.markdown('</div>', unsafe_allow_html=True)
 
     except ValueError as e:
         st.error(str(e))

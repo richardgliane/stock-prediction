@@ -64,7 +64,7 @@ model_type = model_type_full.split(' (')[0]  # Extract short name (e.g., "Attent
 epochs = st.slider("Number of Epochs", min_value=5, max_value=100, value=20, step=5)
 hidden_size = st.slider("Hidden Size", min_value=20, max_value=200, value=50, step=10)
 num_layers = st.slider("Number of Layers", min_value=1, max_value=5, value=2, step=1)
-learning_rate = st.slider("Learning Rate", min_value=0.0001, max_value=0.01, value=0.001, step=0.0001)
+learning_rate = st.slider("Learning Rate", min_value=0.0001, max_value=0.01, value=0.001, step=0.0001, format="%.4f")
 
 # Set days_to_predict slider (default to 5)
 days_to_predict = st.slider("Days to Predict", 1, 30, 5, key="days_slider")
